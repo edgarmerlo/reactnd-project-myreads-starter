@@ -8,14 +8,29 @@ class Search extends Component {
         results: [],
         query: '',
     }
-
+    matchWithShelf = (books, myBooks) => {
+        const booksInShelf = {}
+        for(let myBook of myBooks){
+            booksInShelf[myBook.id] = myBook.shelf
+        }
+        const responseWithShelf = []
+        for(let book of books){
+            if(booksInShelf[book.id]){
+                book.shelf = booksInShelf[book.id]
+            }
+            responseWithShelf.push(book)
+        }
+        return responseWithShelf
+    }
     searchForBook = (event) => {
         console.log('value: ', event.target.value)
         event.persist()
         this.setState({ query: event.target.value }, () => {
             event.target.value ?
                 BooksAPI.search(this.state.query).then(response => {
-                    this.setState({results: response.items || response})
+                    BooksAPI.getAll().then(myBooks => {
+                        this.setState({results: this.matchWithShelf(response, myBooks)})
+                    })
                 }) 
             : 
                 this.setState({ results: [] });
